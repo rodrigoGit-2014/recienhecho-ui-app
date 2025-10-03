@@ -14,47 +14,49 @@ export default function RegisterCreatorScreen() {
     const handleSubmit = async () => {
         console.log("[RN] Registration attempt:", { name, email });
 
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/public/verification/start`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        nombre: name,
-        email: email,
-        password: password,
-      }),
-    });
+        try {
+            console.log("rod")
+            console.log(`${API_BASE_URL}`)
+            const response = await fetch(`${API_BASE_URL}/api/public/verification/start`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    name: name,
+                    email: email,
+                    password: password,
+                }),
+            });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Error en la creación de cuenta:", errorText);
-      alert("Ocurrió un error al crear la cuenta. Inténtalo de nuevo.");
-      return;
-    }
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error("Error en la creación de cuenta:", errorText);
+                alert("Ocurrió un error al crear la cuenta. Inténtalo de nuevo.");
+                return;
+            }
 
-    const data = await response.json();
-    console.log("✅ Respuesta backend:", data);
+            const data = await response.json();
+            console.log("✅ Respuesta backend:", data);
 
-    // ⚠️ Aquí se asume que el backend responde con { verificationId: "..." }
-    const verificationId = data.verificationId;
-    if (!verificationId) {
-      console.error("No se recibió verificationId del backend.");
-      alert("No se pudo iniciar la verificación. Contacta soporte.");
-      return;
-    }
+            // ⚠️ Aquí se asume que el backend responde con { verificationId: "..." }
+            const verificationId = data.verificationId;
+            if (!verificationId) {
+                console.error("No se recibió verificationId del backend.");
+                alert("No se pudo iniciar la verificación. Contacta soporte.");
+                return;
+            }
 
-    // ✅ Redirigir a la pantalla de OTP con email y verificationId
-    router.push({
-      pathname: "/otp-verification",
-      params: { email, verificationId },
-    });
-  } catch (error) {
-    console.error("Error de red:", error);
-    alert("No se pudo conectar con el servidor. Verifica tu conexión.");
-  }
-};
+            // ✅ Redirigir a la pantalla de OTP con email y verificationId
+            router.push({
+                pathname: "/otp-verification",
+                params: { email, verificationId },
+            });
+        } catch (error) {
+            console.error("Error de red:", error);
+            alert("No se pudo conectar con el servidor. Verifica tu conexión.");
+        }
+    };
 
 
     return (
