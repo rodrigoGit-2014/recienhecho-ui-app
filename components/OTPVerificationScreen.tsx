@@ -6,7 +6,10 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 
 export default function OTPVerificationScreen() {
     const router = useRouter();
-    const { email } = useLocalSearchParams<{ email?: string }>();
+    const { email, verificationId } = useLocalSearchParams<{
+    email?: string;
+    verificationId?: string;
+        }>();
 
     const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
     const [timer, setTimer] = useState(24);

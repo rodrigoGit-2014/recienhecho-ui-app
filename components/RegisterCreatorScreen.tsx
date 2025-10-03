@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { KeyboardAvoidingView, Platform, Pressable, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { API_BASE_URL } from "@env";
 
 export default function RegisterCreatorScreen() {
     const router = useRouter();
@@ -10,11 +11,51 @@ export default function RegisterCreatorScreen() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         console.log("[RN] Registration attempt:", { name, email });
-        // TODO: agregar lógica real de registro
-        router.push({ pathname: "/otp-verification", params: { email } });
-    };
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/public/verification/start`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        nombre: name,
+        email: email,
+        password: password,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Error en la creación de cuenta:", errorText);
+      alert("Ocurrió un error al crear la cuenta. Inténtalo de nuevo.");
+      return;
+    }
+
+    const data = await response.json();
+    console.log("✅ Respuesta backend:", data);
+
+    // ⚠️ Aquí se asume que el backend responde con { verificationId: "..." }
+    const verificationId = data.verificationId;
+    if (!verificationId) {
+      console.error("No se recibió verificationId del backend.");
+      alert("No se pudo iniciar la verificación. Contacta soporte.");
+      return;
+    }
+
+    // ✅ Redirigir a la pantalla de OTP con email y verificationId
+    router.push({
+      pathname: "/otp-verification",
+      params: { email, verificationId },
+    });
+  } catch (error) {
+    console.error("Error de red:", error);
+    alert("No se pudo conectar con el servidor. Verifica tu conexión.");
+  }
+};
+
 
     return (
         <SafeAreaView className="flex-1 bg-white">
