@@ -1,10 +1,13 @@
-import { Bell, ChefHat } from "lucide-react-native";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+
 export function OnboardingScreen() {
     const [selectedRole, setSelectedRole] = useState<"creator" | "consumer" | null>(null);
+    const router = useRouter();
 
     return (
         <SafeAreaView className="flex-1 bg-white">
@@ -12,7 +15,7 @@ export function OnboardingScreen() {
                 {/* Logo & Icono */}
                 <View className="mb-8 items-center">
                     <View className="mb-6 h-32 w-32 items-center justify-center rounded-full bg-orange-50">
-                        <ChefHat size={64} color="#ea580c" strokeWidth={2.5} />
+                        <MaterialCommunityIcons name="chef-hat" size={64} color="#ea580c" />
                     </View>
 
                     {/* Marca */}
@@ -35,11 +38,11 @@ export function OnboardingScreen() {
                     <View className="gap-4">
                         {/* Tarjeta Creador */}
                         <Pressable
-                            onPress={() => setSelectedRole("creator")}
+                            onPress={() => router.push("/register-creator")}
                             className="flex w-full flex-row items-center gap-4 rounded-3xl bg-orange-600 p-6 active:scale-95"
                         >
                             <View className="h-16 w-16 items-center justify-center rounded-full bg-orange-700">
-                                <ChefHat size={32} color="#fff" strokeWidth={2} />
+                                <MaterialCommunityIcons name="chef-hat" size={32} color="#ffffff" />
                             </View>
                             <View className="flex-1">
                                 <Text className="mb-1 text-xl font-medium text-white">Soy Creador</Text>
@@ -55,7 +58,7 @@ export function OnboardingScreen() {
                             className="flex w-full flex-row items-center gap-4 rounded-3xl border-2 border-orange-200 bg-white p-6 active:scale-95"
                         >
                             <View className="h-16 w-16 items-center justify-center rounded-full bg-orange-50">
-                                <Bell size={32} color="#ea580c" strokeWidth={2} />
+                                <MaterialCommunityIcons name="bell-outline" size={32} color="#ea580c" />
                             </View>
                             <View className="flex-1">
                                 <Text className="mb-1 text-xl font-medium text-gray-900">Soy Consumidor</Text>
@@ -74,6 +77,6 @@ export function OnboardingScreen() {
                     )}
                 </View>
             </View>
-        </SafeAreaView>
+        </SafeAreaView >
     );
 }

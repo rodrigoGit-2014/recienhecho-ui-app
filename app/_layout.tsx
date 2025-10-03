@@ -1,6 +1,5 @@
-import React from "react";
-import { OnboardingScreen } from "../components/OnboardingScreen";
+import { Stack } from "expo-router";
 
-export default function App() {
-  return <OnboardingScreen />;
+export default function Layout() {
+  return <Stack screenOptions={{ headerShown: false }} />;
 }

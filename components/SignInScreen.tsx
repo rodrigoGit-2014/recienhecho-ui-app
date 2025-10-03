@@ -4,16 +4,14 @@ import React, { useState } from "react";
 import { KeyboardAvoidingView, Platform, Pressable, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-export default function RegisterCreatorScreen() {
+export default function SignInScreen() {
     const router = useRouter();
-    const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
     const handleSubmit = () => {
-        console.log("[RN] Registration attempt:", { name, email });
-        // TODO: agregar lógica real de registro
-        router.push({ pathname: "/otp-verification", params: { email } });
+        console.log("[RN] Login attempt:", { email });
+        // TODO: Agregar lógica real de autenticación
     };
 
     return (
@@ -48,25 +46,11 @@ export default function RegisterCreatorScreen() {
 
                         {/* Subtítulo */}
                         <Text className="mb-12 text-center text-lg text-gray-800">
-                            Crear cuenta como Creador
+                            Iniciar sesión como Creador
                         </Text>
 
                         {/* Formulario */}
                         <View className="w-full">
-                            {/* Nombre */}
-                            <View className="mb-6">
-                                <Text className="mb-2 text-base font-semibold text-gray-900">Nombre</Text>
-                                <TextInput
-                                    value={name}
-                                    onChangeText={setName}
-                                    placeholder="Tu nombre"
-                                    className="h-14 rounded-3xl border-0 bg-gray-100 px-4 text-base text-gray-900"
-                                    placeholderTextColor="#9CA3AF"
-                                    autoCapitalize="words"
-                                    returnKeyType="next"
-                                />
-                            </View>
-
                             {/* Email */}
                             <View className="mb-6">
                                 <Text className="mb-2 text-base font-semibold text-gray-900">Email</Text>
@@ -74,10 +58,10 @@ export default function RegisterCreatorScreen() {
                                     value={email}
                                     onChangeText={setEmail}
                                     placeholder="tu@email.com"
+                                    keyboardType="email-address"
+                                    autoCapitalize="none"
                                     className="h-14 rounded-3xl border-0 bg-gray-100 px-4 text-base text-gray-900"
                                     placeholderTextColor="#9CA3AF"
-                                    autoCapitalize="none"
-                                    keyboardType="email-address"
                                     returnKeyType="next"
                                 />
                             </View>
@@ -89,32 +73,31 @@ export default function RegisterCreatorScreen() {
                                     value={password}
                                     onChangeText={setPassword}
                                     placeholder="••••••••"
+                                    secureTextEntry
                                     className="h-14 rounded-3xl border-0 bg-gray-100 px-4 text-base text-gray-900"
                                     placeholderTextColor="#9CA3AF"
-                                    secureTextEntry
                                     returnKeyType="done"
                                 />
                             </View>
 
-                            {/* Botón crear cuenta */}
+                            {/* Botón iniciar sesión */}
                             <Pressable
                                 onPress={handleSubmit}
                                 className="mt-2 h-14 items-center justify-center rounded-3xl bg-orange-600 active:opacity-90"
                                 accessibilityRole="button"
                             >
-                                <Text className="text-lg font-medium text-white">Crear cuenta</Text>
+                                <Text className="text-lg font-medium text-white">Iniciar sesión</Text>
                             </Pressable>
                         </View>
 
-                        {/* Link a login */}
+                        {/* Link a registro (mismo estilo de enlace simple) */}
                         <Pressable
-                            onPress={() => router.push("/sign-in")}
+                            onPress={() => router.push("/register-creator")}
                             className="mt-6"
                             accessibilityRole="button"
                         >
                             <Text className="text-center text-base text-gray-500">
-                                ¿Ya tienes cuenta?{" "}
-                                <Text className="text-gray-800 underline">Inicia sesión</Text>
+                                ¿No tienes cuenta? <Text className="text-gray-800 underline">Regístrate</Text>
                             </Text>
                         </Pressable>
                     </View>
