@@ -1,17 +1,51 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { KeyboardAvoidingView, Platform, Pressable, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Constants from "expo-constants";
 
 export default function SignInScreen() {
+    const { API_BASE_URL } = Constants.expoConfig?.extra || {};
     const router = useRouter();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [err, setErr] = useState<string | null>(null);
 
-    const handleSubmit = () => {
-        console.log("[RN] Login attempt:", { email });
-        // TODO: Agregar lógica real de autenticación
+    const handleSubmit = async () => {
+        setErr(null);
+
+        if (!email.trim() || !password.trim()) {
+            setErr("Ingresa tu email y contraseña.");
+            return;
+        }
+
+        try {
+            setLoading(true);
+            const res = await fetch(`${API_BASE_URL}/api/public/verification/sign-in`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    email: email.trim(),
+                    password: password.trim(),
+                }),
+            });
+
+            if (!res.ok) {
+                // Puedes leer el body para mensaje específico si tu backend lo envía:
+                // const data = await res.json().catch(()=>null);
+                // throw new Error(data?.message ?? "No fue posible iniciar sesión.");
+                throw new Error("No fue posible iniciar sesión.");
+            }
+
+            // Éxito → llevar al dashboard del creador
+            router.replace("/creator-dashboard");
+        } catch (e: any) {
+            setErr(e?.message ?? "Error al iniciar sesión.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -28,10 +62,7 @@ export default function SignInScreen() {
                 </Pressable>
             </View>
 
-            <KeyboardAvoidingView
-                className="flex-1"
-                behavior={Platform.OS === "ios" ? "padding" : undefined}
-            >
+            <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === "ios" ? "padding" : undefined}>
                 <View className="flex-1 items-center px-6 pt-2 pb-12">
                     <View className="w-full max-w-md items-center">
                         {/* Logo */}
@@ -40,18 +71,13 @@ export default function SignInScreen() {
                         </View>
 
                         {/* Marca */}
-                        <Text className="mb-4 text-center text-4xl font-semibold text-orange-700">
-                            RecienHecho
-                        </Text>
+                        <Text className="mb-4 text-center text-4xl font-semibold text-orange-700">RecienHecho</Text>
 
                         {/* Subtítulo */}
-                        <Text className="mb-12 text-center text-lg text-gray-800">
-                            Iniciar sesión como Creador
-                        </Text>
+                        <Text className="mb-8 text-center text-lg text-gray-800">Iniciar sesión como Creador</Text>
 
                         {/* Formulario */}
                         <View className="w-full">
-                            {/* Email */}
                             <View className="mb-6">
                                 <Text className="mb-2 text-base font-semibold text-gray-900">Email</Text>
                                 <TextInput
@@ -66,8 +92,7 @@ export default function SignInScreen() {
                                 />
                             </View>
 
-                            {/* Contraseña */}
-                            <View className="mb-6">
+                            <View className="mb-2">
                                 <Text className="mb-2 text-base font-semibold text-gray-900">Contraseña</Text>
                                 <TextInput
                                     value={password}
@@ -80,22 +105,32 @@ export default function SignInScreen() {
                                 />
                             </View>
 
-                            {/* Botón iniciar sesión */}
+                            {!!err && (
+                                <Text className="mb-3 text-center text-sm text-red-600">
+                                    {err}
+                                </Text>
+                            )}
+
                             <Pressable
                                 onPress={handleSubmit}
-                                className="mt-2 h-14 items-center justify-center rounded-3xl bg-orange-600 active:opacity-90"
+                                disabled={loading}
+                                className={`mt-2 h-14 items-center justify-center rounded-3xl ${loading ? "bg-orange-300" : "bg-orange-600 active:opacity-90"
+                                    }`}
                                 accessibilityRole="button"
                             >
-                                <Text className="text-lg font-medium text-white">Iniciar sesión</Text>
+                                {loading ? (
+                                    <View className="flex-row items-center gap-2">
+                                        <ActivityIndicator color="#fff" />
+                                        <Text className="text-lg font-medium text-white">Ingresando…</Text>
+                                    </View>
+                                ) : (
+                                    <Text className="text-lg font-medium text-white">Iniciar sesión</Text>
+                                )}
                             </Pressable>
                         </View>
 
-                        {/* Link a registro (mismo estilo de enlace simple) */}
-                        <Pressable
-                            onPress={() => router.push("/register-creator")}
-                            className="mt-6"
-                            accessibilityRole="button"
-                        >
+                        {/* Link a registro */}
+                        <Pressable onPress={() => router.push("/register-creator")} className="mt-6" accessibilityRole="button">
                             <Text className="text-center text-base text-gray-500">
                                 ¿No tienes cuenta? <Text className="text-gray-800 underline">Regístrate</Text>
                             </Text>

@@ -3,9 +3,10 @@ import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { KeyboardAvoidingView, Platform, Pressable, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { API_BASE_URL } from "@env";
+import Constants from "expo-constants";
 
 export default function RegisterCreatorScreen() {
+    const { API_BASE_URL } = Constants.expoConfig?.extra || {};
     const router = useRouter();
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
@@ -41,7 +42,9 @@ export default function RegisterCreatorScreen() {
 
             // ⚠️ Aquí se asume que el backend responde con { verificationId: "..." }
             const verificationId = data.verificationId;
-            if (!verificationId) {
+            const clientId = data.clientId;
+
+            if (!verificationId || !clientId) {
                 console.error("No se recibió verificationId del backend.");
                 alert("No se pudo iniciar la verificación. Contacta soporte.");
                 return;
@@ -50,7 +53,7 @@ export default function RegisterCreatorScreen() {
             // ✅ Redirigir a la pantalla de OTP con email y verificationId
             router.push({
                 pathname: "/otp-verification",
-                params: { email, verificationId },
+                params: { email, verificationId, clientId: clientId.toString() },
             });
         } catch (error) {
             console.error("Error de red:", error);

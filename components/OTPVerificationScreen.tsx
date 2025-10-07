@@ -1,4 +1,4 @@
-import { API_BASE_URL } from "@env";
+import Constants from "expo-constants";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
@@ -6,8 +6,9 @@ import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, Text, Tex
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function OTPVerificationScreen() {
+    const { API_BASE_URL } = Constants.expoConfig?.extra || {};
     const router = useRouter();
-    const { email, verificationId } = useLocalSearchParams<{ email?: string; verificationId?: string }>();
+    const { email, verificationId, clientId } = useLocalSearchParams<{ email?: string; verificationId?: string; clientId?: string; }>();
 
     const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
     const [timer, setTimer] = useState(24);
@@ -75,7 +76,13 @@ export default function OTPVerificationScreen() {
             }
 
             // Éxito → ir a pantalla de cuenta verificada (pasando email si quieres mostrarlo)
-            router.replace({ pathname: "/account-verified", params: { email } });
+            router.replace({
+                pathname: "/account-verified",
+                params: {
+                    email,
+                    clientId: clientId?.toString() // 👈 convertir a string por compatibilidad
+                }
+            });
         } catch (e: any) {
             setErr(e?.message ?? "Error al verificar el código.");
         } finally {

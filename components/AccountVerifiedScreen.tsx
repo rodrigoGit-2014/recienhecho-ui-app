@@ -6,10 +6,17 @@ import { Ionicons } from "@expo/vector-icons";
 
 export default function AccountVerifiedScreen() {
     const router = useRouter();
-    const { email } = useLocalSearchParams<{ email?: string }>();
+    const { email, clientId } = useLocalSearchParams<{ email?: string; clientId?: string }>();
 
     const goBack = () => router.back();
-    const goToLocation = () => router.push({ pathname: "/form-creator", params: { email } });
+
+    // ✅ Declaramos goToLocation SOLO una vez con clientId incluido
+    const goToLocation = () =>
+        router.push({
+            pathname: "/form-creator",
+            params: { email, clientId: clientId?.toString() },
+        });
+
     const goToDashboard = () => router.push("/(creator)/dashboard");
 
     return (
@@ -31,29 +38,24 @@ export default function AccountVerifiedScreen() {
                 <View className="w-full max-w-md items-center">
                     {/* Hero de éxito */}
                     <View className="mb-8 h-32 w-32 items-center justify-center rounded-full bg-green-50">
-                        <Ionicons name="checkmark-circle" size={96} color="#16a34a" />{/* green-600 */}
+                        <Ionicons name="checkmark-circle" size={96} color="#16a34a" /> {/* green-600 */}
                     </View>
 
-                    {/* Marca (igual que OTP) */}
-                    <Text className="mb-4 text-center text-4xl font-semibold text-orange-700">
-                        RecienHecho
-                    </Text>
+                    {/* Marca */}
+                    <Text className="mb-4 text-center text-4xl font-semibold text-orange-700">RecienHecho</Text>
 
-                    {/* Título en verde fuerte + icono ya arriba */}
-                    <Text className="mb-6 text-center text-3xl font-bold text-green-600">
-                        ¡Cuenta verificada!
-                    </Text>
+                    {/* Título */}
+                    <Text className="mb-6 text-center text-3xl font-bold text-green-600">¡Cuenta verificada!</Text>
 
-                    {/* Descripción coherente con OTP */}
+                    {/* Descripción */}
                     <Text className="mb-8 text-center text-base text-gray-800">
                         Ya validamos tu correo{" "}
-                        <Text className="font-medium text-gray-900">
-                            {email || "tu-email@dominio.com"}
-                        </Text>
-                        . Ahora configura la ubicación de tu emprendimiento para que los consumidores puedan encontrarte por cercanía.
+                        <Text className="font-medium text-gray-900">{email || "tu-email@dominio.com"}</Text>. Ahora
+                        configura la ubicación de tu emprendimiento para que los consumidores puedan encontrarte por
+                        cercanía.
                     </Text>
 
-                    {/* CTA principal (mismo estilo de botón que OTP) */}
+                    {/* CTA principal */}
                     <Pressable
                         onPress={goToLocation}
                         className="mt-2 h-14 w-full items-center justify-center rounded-3xl bg-orange-600 active:opacity-90"
@@ -62,7 +64,7 @@ export default function AccountVerifiedScreen() {
                         <Text className="text-lg font-medium text-white">Configurar ubicación</Text>
                     </Pressable>
 
-                    {/* CTA secundaria outline (mismo estilo que OTP) */}
+                    {/* CTA secundaria */}
                     <Pressable
                         onPress={goToDashboard}
                         className="mt-4 h-14 w-full items-center justify-center rounded-3xl border-2 border-orange-200 bg-white active:opacity-90"
@@ -71,10 +73,8 @@ export default function AccountVerifiedScreen() {
                         <Text className="text-lg font-medium text-gray-900">Ir al panel</Text>
                     </Pressable>
 
-                    {/* Indicador de progreso (estilo helper de OTP) */}
-                    <Text className="mt-8 text-center text-sm text-gray-500">
-                        Paso 2 de 3 · Verificación completada
-                    </Text>
+                    {/* Indicador */}
+                    <Text className="mt-8 text-center text-sm text-gray-500">Paso 2 de 3 · Verificación completada</Text>
                 </View>
             </View>
         </SafeAreaView>

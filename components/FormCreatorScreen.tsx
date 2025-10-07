@@ -1,4 +1,4 @@
-import { API_BASE_URL } from "@env";
+import Constants from "expo-constants";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useState } from "react";
@@ -6,9 +6,9 @@ import { ActivityIndicator, Pressable, Text, TextInput, View } from "react-nativ
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function FormCreatorScreen() {
+    const { API_BASE_URL } = Constants.expoConfig?.extra || {};
     const router = useRouter();
-    const { email } = useLocalSearchParams<{ email?: string }>();
-
+    const { email, clientId } = useLocalSearchParams<{ email?: string; clientId?: string }>();
     const [businessName, setBusinessName] = useState("");
     const [location, setLocation] = useState("");
     const [loading, setLoading] = useState(false);
@@ -31,20 +31,26 @@ export default function FormCreatorScreen() {
                 body: JSON.stringify({
                     name: businessName.trim(),
                     address: location.trim(),
+                    clientId: clientId ? Number(clientId) : undefined
                 }),
             });
 
+            const data = await res.json().catch(() => null);
             if (!res.ok) {
                 // Puedes leer res.json() si tu backend retorna {message}
                 throw new Error("No fue posible guardar los datos del emprendimiento.");
             }
-
+            const storeId = (data?.storeId ?? data?.id)?.toString();
+            if (!storeId) {
+                throw new Error("No se recibió storeId desde el backend.");
+            }
             // Navegar al dashboard del Creador
             router.replace({
                 pathname: "/creator-dashboard",
                 params: {
                     name: businessName.trim(),
                     address: location.trim(),
+                    storeId,
                 },
             });
         } catch (e: any) {
