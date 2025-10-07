@@ -9,14 +9,11 @@ export default function AccountVerifiedScreen() {
     const { email, clientId } = useLocalSearchParams<{ email?: string; clientId?: string }>();
 
     const goBack = () => router.back();
-
-    // ✅ Declaramos goToLocation SOLO una vez con clientId incluido
     const goToLocation = () =>
         router.push({
             pathname: "/form-creator",
             params: { email, clientId: clientId?.toString() },
         });
-
     const goToDashboard = () => router.push("/(creator)/dashboard");
 
     return (
@@ -38,7 +35,7 @@ export default function AccountVerifiedScreen() {
                 <View className="w-full max-w-md items-center">
                     {/* Hero de éxito */}
                     <View className="mb-8 h-32 w-32 items-center justify-center rounded-full bg-green-50">
-                        <Ionicons name="checkmark-circle" size={96} color="#16a34a" /> {/* green-600 */}
+                        <Ionicons name="checkmark-circle" size={96} color="#16a34a" />
                     </View>
 
                     {/* Marca */}
@@ -74,7 +71,9 @@ export default function AccountVerifiedScreen() {
                     </Pressable>
 
                     {/* Indicador */}
-                    <Text className="mt-8 text-center text-sm text-gray-500">Paso 2 de 3 · Verificación completada</Text>
+                    <Text className="mt-8 text-center text-sm text-gray-500">
+                        Paso 2 de 3 · Verificación completada
+                    </Text>
                 </View>
             </View>
         </SafeAreaView>

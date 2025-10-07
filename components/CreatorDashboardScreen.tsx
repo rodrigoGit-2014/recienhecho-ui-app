@@ -46,6 +46,11 @@ export default function CreatorDashboardScreen({ onPublish }: DashboardViewProps
         storeId?: string;
     }>();
 
+    const statusLabels: Record<string, string> = {
+        READY: "Finalizado",
+        SCHEDULED: "En preparación",
+    };
+
     const title = (name ?? "Mi cocina casera").toString();
     const subtitle = (address ?? "Providencia, Santiago").toString();
     const sid = (storeId ?? "3").toString(); // fallback opcional
@@ -60,7 +65,7 @@ export default function CreatorDashboardScreen({ onPublish }: DashboardViewProps
             try {
                 setLoading(true);
                 setErr(null);
-                const res = await fetch(`${API_BASE_URL}/api/stores/${sid}/batches?status=READY`);
+                const res = await fetch(`${API_BASE_URL}/api/stores/${sid}/batches`);
                 const data = await res.json().catch(() => null);
                 if (!res.ok) throw new Error(data?.message ?? "No fue posible cargar publicaciones.");
                 if (alive) setBatches(Array.isArray(data) ? data : []);
@@ -156,7 +161,7 @@ export default function CreatorDashboardScreen({ onPublish }: DashboardViewProps
                                     </Text>
                                     <View className="rounded-full bg-[#FDE7D6] px-3 py-1.5">
                                         <Text className="text-[13px] font-medium text-[#EA580C]">
-                                            {batch.status === "READY" ? "Listo" : batch.status}
+                                            {statusLabels[batch.status] || batch.status}
                                         </Text>
                                     </View>
                                 </View>

@@ -31,16 +31,25 @@ export default function SignInScreen() {
                     password: password.trim(),
                 }),
             });
-
+            const data = await res.json().catch(() => null);
             if (!res.ok) {
                 // Puedes leer el body para mensaje específico si tu backend lo envía:
                 // const data = await res.json().catch(()=>null);
                 // throw new Error(data?.message ?? "No fue posible iniciar sesión.");
                 throw new Error("No fue posible iniciar sesión.");
             }
+            const name = data?.name?.toString?.();
+            const address = data?.address?.toString?.();
+            const storeId = data?.storeId != null ? String(data.storeId) : undefined;
 
-            // Éxito → llevar al dashboard del creador
-            router.replace("/creator-dashboard");
+            if (!name || !address || !storeId) {
+                throw new Error("La respuesta no contiene name, address o storeId.");
+            }
+            // Éxito → llevar al dashboard del creador            
+            router.replace({
+                pathname: "/creator-dashboard",
+                params: { name, address, storeId },
+            });
         } catch (e: any) {
             setErr(e?.message ?? "Error al iniciar sesión.");
         } finally {
