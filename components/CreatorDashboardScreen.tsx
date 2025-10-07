@@ -1,11 +1,12 @@
 // components/CreatorDashboardScreen.tsx
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import Constants from "expo-constants";
+import { ActivityIndicator, Pressable, Text, View, FlatList, RefreshControl } from "react-native";
+
 
 type Batch = {
     id: number;
@@ -135,23 +136,58 @@ export default function CreatorDashboardScreen() {
             </View>
 
             {/* Body centrado (mismo patrón w-full max-w-md) */}
-            <View className="flex-1 items-center px-6 pt-8 pb-12">
-                <View className="w-full max-w-md">
-                    <Text className="mb-5 text-[20px] font-semibold text-gray-900">Mis publicaciones</Text>
-
-                    {loading ? (
-                        <View className="mt-6 items-center">
-                            <ActivityIndicator />
-                            <Text className="mt-3 text-gray-600">Cargando publicaciones…</Text>
+            <View className="flex-1 pt-8">
+                <FlatList
+                    data={batches}
+                    keyExtractor={(item) => String(item.id)}
+                    // padding lateral + extra bottom para que el FAB no tape el final
+                    contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 120 }}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={loading && batches.length > 0}
+                            onRefresh={() => {
+                                // vuelve a cargar (puedes extraer tu fetch a una función y llamarla aquí)
+                                (async () => {
+                                    try {
+                                        setErr(null);
+                                        setLoading(true);
+                                        const res = await fetch(`${API_BASE_URL}/api/stores/${sid}/batches?status=READY`);
+                                        const data = await res.json().catch(() => null);
+                                        if (!res.ok) throw new Error(data?.message ?? "No fue posible cargar publicaciones.");
+                                        setBatches(Array.isArray(data) ? data : []);
+                                    } catch (e: any) {
+                                        setErr(e?.message ?? "Error al cargar publicaciones.");
+                                    } finally {
+                                        setLoading(false);
+                                    }
+                                })();
+                            }}
+                        />
+                    }
+                    ListHeaderComponent={
+                        <View className="w-full max-w-md self-center">
+                            <Text className="mb-5 text-[20px] font-semibold text-gray-900">Mis publicaciones</Text>
+                            {/* estados arriba del listado */}
+                            {loading && batches.length === 0 ? (
+                                <View className="mt-6 items-center">
+                                    <ActivityIndicator />
+                                    <Text className="mt-3 text-gray-600">Cargando publicaciones…</Text>
+                                </View>
+                            ) : err ? (
+                                <Text className="text-red-600">{err}</Text>
+                            ) : null}
                         </View>
-                    ) : err ? (
-                        <Text className="text-red-600">{err}</Text>
-                    ) : batches.length === 0 ? (
-                        <Text className="text-gray-600">No hay publicaciones READY por ahora.</Text>
-                    ) : (
-                        batches.map((batch) => (
+                    }
+                    ListEmptyComponent={
+                        !loading && !err ? (
+                            <View className="w-full max-w-md self-center">
+                                <Text className="text-gray-600">No hay publicaciones READY por ahora.</Text>
+                            </View>
+                        ) : null
+                    }
+                    renderItem={({ item: batch }) => (
+                        <View className="w-full max-w-md self-center">
                             <View
-                                key={batch.id}
                                 className="mb-5 rounded-3xl bg-white p-5"
                                 style={{
                                     shadowColor: "#000",
@@ -173,13 +209,15 @@ export default function CreatorDashboardScreen() {
                                     <Text className="text-[14px] text-[#6B7280]">{formatEta(batch.readyAt)}</Text>
                                 </View>
                             </View>
-                        ))
+                        </View>
                     )}
-                </View>
+                />
 
-                {/* FAB: crear publicación -> PublishProduct, propagando storeId */}
+                {/* FAB (sigue absoluto y el listado ya tiene paddingBottom suficiente) */}
                 <Pressable
-                    onPress={() => router.push({ pathname: "/publish-product", params: { storeId: sid, name: title, address: subtitle } })}
+                    onPress={() =>
+                        router.push({ pathname: "/publish-product", params: { storeId: sid, name: title, address: subtitle } })
+                    }
                     className="absolute bottom-6 right-6 h-14 w-14 items-center justify-center rounded-full bg-[#EA580C]"
                     style={{
                         shadowColor: "#000",
