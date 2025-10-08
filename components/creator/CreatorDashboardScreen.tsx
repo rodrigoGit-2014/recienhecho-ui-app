@@ -220,7 +220,7 @@ export default function CreatorDashboardScreen() {
                 {/* FAB (sigue absoluto y el listado ya tiene paddingBottom suficiente) */}
                 <Pressable
                     onPress={() =>
-                        router.push({ pathname: "/publish-product", params: { storeId: sid, name: title, address: subtitle } })
+                        router.push({ pathname: "/creator/publish-product", params: { storeId: sid, name: title, address: subtitle } })
                     }
                     className="absolute bottom-6 right-6 h-14 w-14 items-center justify-center rounded-full bg-[#EA580C]"
                     style={{

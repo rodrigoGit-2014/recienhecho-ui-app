@@ -46,7 +46,7 @@ export default function FormCreatorScreen() {
             }
             // Navegar al dashboard del Creador
             router.replace({
-                pathname: "/creator-dashboard",
+                pathname: "/creator/creator-dashboard",
                 params: {
                     name: businessName.trim(),
                     address: location.trim(),

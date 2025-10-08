@@ -77,7 +77,7 @@ export default function OTPVerificationScreen() {
 
             // Éxito → ir a pantalla de cuenta verificada (pasando email si quieres mostrarlo)
             router.replace({
-                pathname: "/account-verified",
+                pathname: "/auth/account-verified",
                 params: {
                     email,
                     clientId: clientId?.toString() // 👈 convertir a string por compatibilidad

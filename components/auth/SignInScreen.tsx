@@ -47,7 +47,7 @@ export default function SignInScreen() {
             }
             // Éxito → llevar al dashboard del creador            
             router.replace({
-                pathname: "/creator-dashboard",
+                pathname: "/creator/creator-dashboard",
                 params: { name, address, storeId },
             });
         } catch (e: any) {

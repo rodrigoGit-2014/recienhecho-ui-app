@@ -70,7 +70,7 @@ export default function PublishProductScreen() {
             }
 
             // Volver al dashboard con storeId para refrescar            
-            router.replace({ pathname: "/creator-dashboard", params: { storeId: sid, name, address } });
+            router.replace({ pathname: "/creator/creator-dashboard", params: { storeId: sid, name, address } });
         } catch (e: any) {
             setErr(e?.message ?? "Error al publicar.");
         } finally {

@@ -52,7 +52,7 @@ export default function RegisterCreatorScreen() {
 
             // ✅ Redirigir a la pantalla de OTP con email y verificationId
             router.push({
-                pathname: "/otp-verification",
+                pathname: "/auth/otp-verification",
                 params: { email, verificationId, clientId: clientId.toString() },
             });
         } catch (error) {
@@ -154,7 +154,7 @@ export default function RegisterCreatorScreen() {
 
                         {/* Link a login */}
                         <Pressable
-                            onPress={() => router.push("/sign-in")}
+                            onPress={() => router.push("/auth/sign-in")}
                             className="mt-6"
                             accessibilityRole="button"
                         >

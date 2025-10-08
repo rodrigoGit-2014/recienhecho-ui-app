@@ -38,7 +38,7 @@ export function OnboardingScreen() {
                     <View className="gap-4">
                         {/* Tarjeta Creador */}
                         <Pressable
-                            onPress={() => router.push("/register-creator")}
+                            onPress={() => router.push("/auth/register-creator")}
                             className="flex w-full flex-row items-center gap-4 rounded-3xl bg-orange-600 p-6 active:scale-95"
                         >
                             <View className="h-16 w-16 items-center justify-center rounded-full bg-orange-700">

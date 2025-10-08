@@ -1,4 +1,4 @@
-import PublishProductScreen from "../components/PublishProductScreen";
+import PublishProductScreen from "../../components/creator/PublishProductScreen";
 export default function PublishProductPage() {
     return <PublishProductScreen />;
 }

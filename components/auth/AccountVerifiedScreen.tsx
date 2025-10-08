@@ -11,7 +11,7 @@ export default function AccountVerifiedScreen() {
     const goBack = () => router.back();
     const goToLocation = () =>
         router.push({
-            pathname: "/form-creator",
+            pathname: "/creator/form-creator",
             params: { email, clientId: clientId?.toString() },
         });
     const goToDashboard = () => router.push("/(creator)/dashboard");
