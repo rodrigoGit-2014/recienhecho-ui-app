@@ -139,7 +139,7 @@ export default function SignInScreen() {
                         </View>
 
                         {/* Link a registro */}
-                        <Pressable onPress={() => router.push("/register-creator")} className="mt-6" accessibilityRole="button">
+                        <Pressable onPress={() => router.push("/sign-up")} className="mt-6" accessibilityRole="button">
                             <Text className="text-center text-base text-gray-500">
                                 ¿No tienes cuenta? <Text className="text-gray-800 underline">Regístrate</Text>
                             </Text>

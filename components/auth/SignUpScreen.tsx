@@ -5,7 +5,7 @@ import { KeyboardAvoidingView, Platform, Pressable, Text, TextInput, View } from
 import { SafeAreaView } from "react-native-safe-area-context";
 import Constants from "expo-constants";
 
-export default function RegisterCreatorScreen() {
+export default function SignUpScreen() {
     const { API_BASE_URL } = Constants.expoConfig?.extra || {};
     const router = useRouter();
     const [name, setName] = useState("");
