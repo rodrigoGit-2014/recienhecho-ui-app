@@ -34,6 +34,10 @@ function formatEta(readyAtISO: string) {
     if (diffMs >= -60000) return "Listo ahora";
     return `Listo hace ${hm}`;
 }
+const statusLabels: Record<string, string> = {
+    READY: "Listo",
+    SCHEDULED: "En espera"
+};
 
 export default function CreatorDashboardScreen() {
     const router = useRouter();
@@ -151,7 +155,7 @@ export default function CreatorDashboardScreen() {
                                     try {
                                         setErr(null);
                                         setLoading(true);
-                                        const res = await fetch(`${API_BASE_URL}/api/stores/${sid}/batches?status=READY`);
+                                        const res = await fetch(`${API_BASE_URL}/api/stores/${sid}/batches`);
                                         const data = await res.json().catch(() => null);
                                         if (!res.ok) throw new Error(data?.message ?? "No fue posible cargar publicaciones.");
                                         setBatches(Array.isArray(data) ? data : []);
@@ -200,7 +204,7 @@ export default function CreatorDashboardScreen() {
                                 <View className="mb-3 flex-row items-start justify-between">
                                     <Text className="text-[17px] font-semibold text-gray-900">{batch.product}</Text>
                                     <View className="rounded-full bg-[#FDE7D6] px-3 py-1.5">
-                                        <Text className="text-[13px] font-medium text-[#EA580C]">{batch.status}</Text>
+                                        <Text className="text-[13px] font-medium text-[#EA580C]">{statusLabels[batch.status] || batch.status}</Text>
                                     </View>
                                 </View>
 
