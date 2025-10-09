@@ -1,5 +1,5 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import React, { useState } from "react";
 import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -8,6 +8,9 @@ import Constants from "expo-constants";
 export default function SignInScreen() {
     const { API_BASE_URL } = Constants.expoConfig?.extra || {};
     const router = useRouter();
+    const { role } = useLocalSearchParams<{ role?: "creator" | "consumer" }>();
+    const roleLabel = role === "consumer" ? "Consumidor" : "Creador";
+
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
@@ -29,6 +32,7 @@ export default function SignInScreen() {
                 body: JSON.stringify({
                     email: email.trim(),
                     password: password.trim(),
+                    role: role === "consumer" ? "CONSUMER" : "CREATOR"
                 }),
             });
             const data = await res.json().catch(() => null);
@@ -83,7 +87,7 @@ export default function SignInScreen() {
                         <Text className="mb-4 text-center text-4xl font-semibold text-orange-700">RecienHecho</Text>
 
                         {/* Subtítulo */}
-                        <Text className="mb-8 text-center text-lg text-gray-800">Iniciar sesión como Creador</Text>
+                        <Text className="mb-8 text-center text-lg text-gray-800">Iniciar sesión como {roleLabel}</Text>
 
                         {/* Formulario */}
                         <View className="w-full">

@@ -5,10 +5,12 @@ import { Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 
-export function OnboardingScreen() {
+export function HomeScreen() {
     const [selectedRole, setSelectedRole] = useState<"creator" | "consumer" | null>(null);
     const router = useRouter();
-
+    const goToSignUp = (role: "creator" | "consumer") => {
+        router.push({ pathname: "/auth/sign-up", params: { role } });
+    };
     return (
         <SafeAreaView className="flex-1 bg-white">
             <View className="flex-1 items-center justify-center px-6 py-12">
@@ -38,7 +40,7 @@ export function OnboardingScreen() {
                     <View className="gap-4">
                         {/* Tarjeta Creador */}
                         <Pressable
-                            onPress={() => router.push("/auth/sign-up")}
+                            onPress={() => goToSignUp("creator")}
                             className="flex w-full flex-row items-center gap-4 rounded-3xl bg-orange-600 p-6 active:scale-95"
                         >
                             <View className="h-16 w-16 items-center justify-center rounded-full bg-orange-700">
@@ -54,7 +56,7 @@ export function OnboardingScreen() {
 
                         {/* Tarjeta Consumidor */}
                         <Pressable
-                            onPress={() => setSelectedRole("consumer")}
+                            onPress={() => goToSignUp("consumer")}
                             className="flex w-full flex-row items-center gap-4 rounded-3xl border-2 border-orange-200 bg-white p-6 active:scale-95"
                         >
                             <View className="h-16 w-16 items-center justify-center rounded-full bg-orange-50">

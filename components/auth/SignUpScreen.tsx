@@ -1,5 +1,5 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import React, { useState } from "react";
 import { KeyboardAvoidingView, Platform, Pressable, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -8,6 +8,9 @@ import Constants from "expo-constants";
 export default function SignUpScreen() {
     const { API_BASE_URL } = Constants.expoConfig?.extra || {};
     const router = useRouter();
+    const { role } = useLocalSearchParams<{ role?: "creator" | "consumer" }>();
+    const roleLabel = role === "consumer" ? "Consumidor" : "Creador";
+
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -27,6 +30,7 @@ export default function SignUpScreen() {
                     name: name,
                     email: email,
                     password: password,
+                    role: role === "consumer" ? "CONSUMER" : "CREATOR"
                 }),
             });
 
@@ -94,7 +98,7 @@ export default function SignUpScreen() {
 
                         {/* Subtítulo */}
                         <Text className="mb-12 text-center text-lg text-gray-800">
-                            Crear cuenta como Creador
+                            Crear cuenta como {roleLabel}
                         </Text>
 
                         {/* Formulario */}
@@ -154,7 +158,7 @@ export default function SignUpScreen() {
 
                         {/* Link a login */}
                         <Pressable
-                            onPress={() => router.push("/auth/sign-in")}
+                            onPress={() => router.push({ pathname: "/auth/sign-in", params: { role } })}
                             className="mt-6"
                             accessibilityRole="button"
                         >

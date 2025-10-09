@@ -1,6 +1,6 @@
 import "../global.css";
-import { OnboardingScreen } from "../components/OnboardingScreen";
+import { HomeScreen } from "../components/HomeScreen";
 
 export default function Index() {
-  return <OnboardingScreen />;
+  return <HomeScreen />;
 }
