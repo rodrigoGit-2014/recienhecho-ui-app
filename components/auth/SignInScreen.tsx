@@ -26,33 +26,50 @@ export default function SignInScreen() {
 
         try {
             setLoading(true);
+            const apiRole = role === "consumer" ? "CONSUMER" : "CREATOR";
+
             const res = await fetch(`${API_BASE_URL}/api/public/verification/sign-in`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     email: email.trim(),
                     password: password.trim(),
-                    role: role === "consumer" ? "CONSUMER" : "CREATOR"
+                    role: apiRole, // CREATOR | CONSUMER
                 }),
             });
+
             const data = await res.json().catch(() => null);
             if (!res.ok) {
-                // Puedes leer el body para mensaje específico si tu backend lo envía:
-                // const data = await res.json().catch(()=>null);
-                // throw new Error(data?.message ?? "No fue posible iniciar sesión.");
-                throw new Error("No fue posible iniciar sesión.");
+                throw new Error(data?.message ?? "No fue posible iniciar sesión.");
             }
+
             const name = data?.name?.toString?.();
             const address = data?.address?.toString?.();
             const storeId = data?.storeId != null ? String(data.storeId) : undefined;
+            const clientId = data?.clientId != null ? String(data.clientId) : undefined;
 
-            if (!name || !address || !storeId) {
-                throw new Error("La respuesta no contiene name, address o storeId.");
+            // Ramificación por rol
+            if (apiRole !== "CONSUMER") {
+                // CREATOR: si faltan datos del store, ir a completar configuración
+                if (!name || !address || !storeId) {
+                    router.replace({
+                        pathname: "/creator/form-creator-address", // ajusta si tu ruta real es distinta
+                        params: { email, clientId, role: "CREATOR" },
+                    });
+                    return;
+                }
+                // CREATOR: todo OK -> dashboard
+                router.replace({
+                    pathname: "/creator/creator-dashboard",
+                    params: { name, address, storeId },
+                });
+                return;
             }
-            // Éxito → llevar al dashboard del creador            
+
+            // CONSUMER: siempre a notificaciones (sin exigir name/address/storeId)
             router.replace({
-                pathname: "/creator/creator-dashboard",
-                params: { name, address, storeId },
+                pathname: "/consumer/notification-consumer", // ajusta si tu ruta real es distinta
+                params: { role: "CONSUMER" },
             });
         } catch (e: any) {
             setErr(e?.message ?? "Error al iniciar sesión.");
@@ -87,7 +104,9 @@ export default function SignInScreen() {
                         <Text className="mb-4 text-center text-4xl font-semibold text-orange-700">RecienHecho</Text>
 
                         {/* Subtítulo */}
-                        <Text className="mb-8 text-center text-lg text-gray-800">Iniciar sesión como {roleLabel}</Text>
+                        <Text className="mb-8 text-center text-lg text-gray-800">
+                            Iniciar sesión como {roleLabel}
+                        </Text>
 
                         {/* Formulario */}
                         <View className="w-full">
@@ -142,8 +161,12 @@ export default function SignInScreen() {
                             </Pressable>
                         </View>
 
-                        {/* Link a registro */}
-                        <Pressable onPress={() => router.push("/sign-up")} className="mt-6" accessibilityRole="button">
+                        {/* Link a registro (si mantienes rol en el query, puedes preservarlo aquí) */}
+                        <Pressable
+                            onPress={() => router.push({ pathname: "/auth/sign-up", params: { role } })}
+                            className="mt-6"
+                            accessibilityRole="button"
+                        >
                             <Text className="text-center text-base text-gray-500">
                                 ¿No tienes cuenta? <Text className="text-gray-800 underline">Regístrate</Text>
                             </Text>

@@ -6,15 +6,35 @@ import { Ionicons } from "@expo/vector-icons";
 
 export default function AccountVerifiedScreen() {
     const router = useRouter();
-    const { email, clientId } = useLocalSearchParams<{ email?: string; clientId?: string }>();
-
+    const { email, clientId, role } = useLocalSearchParams<{
+        email?: string;
+        clientId?: string;
+        role?: string; // "CREATOR" | "CONSUMER" (puede venir en minúsculas)
+    }>();
+    const normalizedRole = role?.toString().toUpperCase();
+    const isCreator = normalizedRole !== "CONSUMER"; // fallback a CREATOR si no viene
+    const handlePrimaryCTA = () => {
+        if (isCreator) {
+            router.push({
+                pathname: "/creator/form-creator-address",
+                params: { email, clientId: clientId?.toString(), role: "CREATOR" },
+            });
+        } else {
+            // ajusta el path a tu ruta real de notificaciones del consumidor
+            router.push({
+                pathname: "/consumer/notification-consumer",
+                params: { role: "CONSUMER" },
+            });
+        }
+    };
     const goBack = () => router.back();
-    const goToLocation = () =>
-        router.push({
-            pathname: "/creator/form-creator",
-            params: { email, clientId: clientId?.toString() },
-        });
-    const goToDashboard = () => router.push("/(creator)/dashboard");
+
+    const primaryLabel = isCreator ? "Configurar ubicación" : "Ver mis notificaciones";
+    const headingText = "¡Cuenta verificada!";
+    const descriptionText = isCreator
+        ? `Ya validamos tu correo ${email || "tu-email@dominio.com"}. Ahora configura la ubicación de tu emprendimiento para que los consumidores puedan encontrarte por cercanía.`
+        : `Ya validamos tu correo ${email || "tu-email@dominio.com"}. Ya puedes ver las notificaciones de tus emprendimientos favoritos.`;
+
 
     return (
         <SafeAreaView className="flex-1 bg-white">
@@ -42,33 +62,24 @@ export default function AccountVerifiedScreen() {
                     <Text className="mb-4 text-center text-4xl font-semibold text-orange-700">RecienHecho</Text>
 
                     {/* Título */}
-                    <Text className="mb-6 text-center text-3xl font-bold text-green-600">¡Cuenta verificada!</Text>
+                    <Text className="mb-6 text-center text-3xl font-bold text-green-600">{headingText}</Text>
 
                     {/* Descripción */}
                     <Text className="mb-8 text-center text-base text-gray-800">
-                        Ya validamos tu correo{" "}
-                        <Text className="font-medium text-gray-900">{email || "tu-email@dominio.com"}</Text>. Ahora
-                        configura la ubicación de tu emprendimiento para que los consumidores puedan encontrarte por
-                        cercanía.
+                        {descriptionText}
                     </Text>
 
                     {/* CTA principal */}
                     <Pressable
-                        onPress={goToLocation}
+                        onPress={handlePrimaryCTA}
                         className="mt-2 h-14 w-full items-center justify-center rounded-3xl bg-orange-600 active:opacity-90"
                         accessibilityRole="button"
                     >
-                        <Text className="text-lg font-medium text-white">Configurar ubicación</Text>
+
+                        <Text className="text-lg font-medium text-white">{primaryLabel}</Text>
                     </Pressable>
 
-                    {/* CTA secundaria */}
-                    <Pressable
-                        onPress={goToDashboard}
-                        className="mt-4 h-14 w-full items-center justify-center rounded-3xl border-2 border-orange-200 bg-white active:opacity-90"
-                        accessibilityRole="button"
-                    >
-                        <Text className="text-lg font-medium text-gray-900">Ir al panel</Text>
-                    </Pressable>
+
 
                     {/* Indicador */}
                     <Text className="mt-8 text-center text-sm text-gray-500">

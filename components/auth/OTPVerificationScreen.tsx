@@ -8,7 +8,14 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export default function OTPVerificationScreen() {
     const { API_BASE_URL } = Constants.expoConfig?.extra || {};
     const router = useRouter();
-    const { email, verificationId, clientId } = useLocalSearchParams<{ email?: string; verificationId?: string; clientId?: string; }>();
+
+    const { email, verificationId, clientId, role } =
+        useLocalSearchParams<{
+            email?: string;
+            verificationId?: string;
+            clientId?: string;
+            role?: string;
+        }>();
 
     const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
     const [timer, setTimer] = useState(24);
@@ -80,8 +87,9 @@ export default function OTPVerificationScreen() {
                 pathname: "/auth/account-verified",
                 params: {
                     email,
-                    clientId: clientId?.toString() // 👈 convertir a string por compatibilidad
-                }
+                    clientId: clientId?.toString(),
+                    role: role?.toString().toUpperCase(), // <-- agregar role
+                },
             });
         } catch (e: any) {
             setErr(e?.message ?? "Error al verificar el código.");

@@ -55,9 +55,16 @@ export default function SignUpScreen() {
             }
 
             // ✅ Redirigir a la pantalla de OTP con email y verificationId
+
             router.push({
                 pathname: "/auth/otp-verification",
-                params: { email, verificationId, clientId: clientId.toString() },
+                params: {
+                    email,
+                    verificationId,
+                    clientId: clientId.toString(),
+                    // Pasar el role en UPPERCASE para mantener consistencia
+                    role: role === "consumer" ? "CONSUMER" : "CREATOR",
+                },
             });
         } catch (error) {
             console.error("Error de red:", error);
