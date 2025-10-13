@@ -2,8 +2,9 @@ export default {
     expo: {
         name: "recienhecho-ui-app",
         slug: "recienhecho-ui-app",
+        userInterfaceStyle: "automatic",
         extra: {
-            API_BASE_URL: process.env.API_BASE_URL || "https://recienhecho-service-production.up.railway.app",
+            API_BASE_URL: process.env.API_BASE_URL || "http://192.168.1.31:8080",
         },
     },
 };
