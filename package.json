@@ -3,6 +3,7 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {
+    "build": "npx expo export -p web --output-dir dist",
     "dev": "expo start",
     "start": "npx serve -s dist -l $PORT",
     "build:web": "npx expo export -p web",
