@@ -68,8 +68,8 @@ export default function SignInScreen() {
 
             // CONSUMER: siempre a notificaciones (sin exigir name/address/storeId)
             router.replace({
-                pathname: "/consumer/notification-consumer", // ajusta si tu ruta real es distinta
-                params: { role: "CONSUMER" },
+                pathname: "/consumer/notification-consumer",
+                params: { role: "CONSUMER", clientId },
             });
         } catch (e: any) {
             setErr(e?.message ?? "Error al iniciar sesión.");

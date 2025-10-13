@@ -1,5 +1,5 @@
-// components/ConsumerNotificationsScreen.tsx
-import React, { useMemo, useState } from "react";
+// components/NotificationsScreen.tsx
+import React, { useEffect, useMemo, useState } from "react";
 import {
     ActivityIndicator,
     FlatList,
@@ -11,66 +11,97 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
+import { useLocalSearchParams } from "expo-router";
+import Constants from "expo-constants";
 
 type Category = "Todas" | "Panadería" | "Pastelería" | "Empanadas" | "Otro";
-type Status = "Todos" | "En preparación" | "Listo" | "Finalizado";
+type StatusFilter = "Todos" | "En preparación" | "Listo" | "Finalizado" | "En espera";
 
 type NotificationItem = {
     id: string;
-    title: string;
-    restaurant: string;
-    status: "Listo" | "En preparación" | "Finalizado";
-    location: string;
-    time: string; // e.g. "Listo hace 5 min"
+    title: string;       // product
+    restaurant: string;  // name (store)
+    status: "Listo" | "En preparación" | "Finalizado" | "En espera" | string;
+    location: string;    // address
+    time: string;        // "Listo hace 5 min" | "Listo en 10 min"
     isFavorite: boolean;
     category: Category;
 };
 
-// Mock inicial (luego reemplaza por fetch)
-const mockNotifications: NotificationItem[] = [
-    {
-        id: "1",
-        title: "Pan de masa madre",
-        restaurant: "Mi Cocina Casera",
-        status: "Listo",
-        location: "Santiago Centro",
-        time: "Listo hace 5 min",
-        isFavorite: true,
-        category: "Panadería",
-    },
-    {
-        id: "2",
-        title: "Empanadas de pino",
-        restaurant: "Doña María",
-        status: "En preparación",
-        location: "Providencia",
-        time: "Listo en 15 min",
-        isFavorite: false,
-        category: "Empanadas",
-    },
-    {
-        id: "3",
-        title: "Torta de chocolate",
-        restaurant: "Dulce Tentación",
-        status: "Listo",
-        location: "Las Condes",
-        time: "Listo hace 10 min",
-        isFavorite: true,
-        category: "Pastelería",
-    },
-];
+type ApiNotification = {
+    product: string;
+    status: string;     // e.g., READY | SCHEDULE | ...
+    readyAt: string;    // ISO
+    address: string;
+    name: string;       // store name
+};
+
+const categories: Category[] = ["Todas", "Panadería", "Pastelería", "Empanadas", "Otro"];
+const statuses: StatusFilter[] = ["Todos", "En preparación", "Listo", "Finalizado", "En espera"];
+
+function mapStatusToUi(s: string): NotificationItem["status"] {
+    const up = s.toUpperCase();
+    if (up === "READY") return "Listo";
+    if (up === "SCHEDULE") return "En espera";
+    if (up === "IN_PROGRESS" || up === "PREPARING") return "En preparación";
+    if (up === "DONE" || up === "FINISHED") return "Finalizado";
+    return s; // fallback
+}
+
+function formatReadyAt(readyAtIso: string): string {
+    const now = new Date();
+    const readyAt = new Date(readyAtIso);
+    const diffMs = readyAt.getTime() - now.getTime();
+    const mins = Math.round(Math.abs(diffMs) / 60000);
+    if (diffMs > 0) return `Listo en ${mins} min`;
+    return `Listo hace ${mins} min`;
+}
 
 export default function NotificationsScreen() {
-    const [selectedCategory, setSelectedCategory] = useState<Category>("Todas");
-    const [selectedStatus, setSelectedStatus] = useState<Status>("Todos");
-    const [activeTab, setActiveTab] = useState<
-        "inicio" | "suscripciones" | "notificaciones" | "perfil"
-    >("notificaciones");
-    const [items, setItems] = useState<NotificationItem[]>(mockNotifications);
-    const [loading] = useState(false);
+    const { API_BASE_URL } = Constants.expoConfig?.extra || {};
+    const { clientId } = useLocalSearchParams<{ clientId?: string }>();
 
-    const categories: Category[] = ["Todas", "Panadería", "Pastelería", "Empanadas", "Otro"];
-    const statuses: Status[] = ["Todos", "En preparación", "Listo", "Finalizado"];
+    // UI state
+    const [selectedCategory, setSelectedCategory] = useState<Category>("Todas");
+    const [selectedStatus, setSelectedStatus] = useState<StatusFilter>("Todos");
+    const [activeTab, setActiveTab] = useState<"inicio" | "suscripciones" | "notificaciones" | "perfil">("notificaciones");
+
+    // Data state
+    const [items, setItems] = useState<NotificationItem[]>([]);
+    const [loading, setLoading] = useState<boolean>(false);
+    const [err, setErr] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchNotifications = async () => {
+            if (!clientId) return;
+            setLoading(true);
+            setErr(null);
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/consumers/${clientId}/notifications`, {
+                    method: "GET",
+                    headers: { "Content-Type": "application/json" },
+                });
+                const data: ApiNotification[] = await res.json();
+                if (!res.ok) throw new Error("No fue posible obtener tus notificaciones.");
+                const mapped: NotificationItem[] = (data || []).map((n, idx) => ({
+                    id: String(idx), // si el backend no manda id, usamos el índice
+                    title: n.product,
+                    restaurant: n.name,
+                    status: mapStatusToUi(n.status),
+                    location: n.address,
+                    time: formatReadyAt(n.readyAt),
+                    isFavorite: false,
+                    category: "Otro", // backend aún no envía categoría
+                }));
+                setItems(mapped);
+            } catch (e: any) {
+                setErr(e?.message ?? "Ocurrió un error al cargar las notificaciones.");
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchNotifications();
+    }, [API_BASE_URL, clientId]);
 
     const filtered = useMemo(() => {
         return items.filter((n) => {
@@ -88,39 +119,27 @@ export default function NotificationsScreen() {
 
     return (
         <SafeAreaView className="flex-1 bg-white">
-            {/* Header (estilo unificado con CreatorDashboard) */}
+            {/* Header */}
             <View className="w-full overflow-hidden rounded-b-3xl">
                 <LinearGradient colors={["#FF8A3D", "#FF6A00"]} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}>
                     <View className="items-center px-6 pt-6 pb-8">
                         <View className="w-full max-w-md">
                             <View className="mb-6 flex-row items-center justify-between">
-                                <Pressable
-                                    className="h-10 w-10 items-center justify-center rounded-full active:bg-white/10"
-                                    accessibilityRole="button"
-                                    accessibilityLabel="Abrir notificaciones"
-                                >
+                                <Pressable className="h-10 w-10 items-center justify-center rounded-full active:bg-white/10">
                                     <Ionicons name="notifications-outline" size={24} color="#fff" />
                                 </Pressable>
-                                <Text className="text-[22px] font-semibold leading-tight text-white">
-                                    Mis Notificaciones
-                                </Text>
-                                <Pressable
-                                    className="h-10 w-10 items-center justify-center rounded-full active:bg-white/10"
-                                    accessibilityRole="button"
-                                    accessibilityLabel="Buscar"
-                                >
+                                <Text className="text-[22px] font-semibold leading-tight text-white">Mis Notificaciones</Text>
+                                <Pressable className="h-10 w-10 items-center justify-center rounded-full active:bg-white/10">
                                     <Ionicons name="search-outline" size={24} color="#fff" />
                                 </Pressable>
                             </View>
 
-                            {/* Resumen superior (opcional) */}
+                            {/* Resumen superior */}
                             <View className="rounded-3xl bg-white/15 p-5">
                                 <View className="flex-row items-center justify-between">
                                     <View>
                                         <Text className="mb-2 text-[14px] text-white/90">Notificaciones hoy</Text>
-                                        <Text className="text-[40px] font-bold leading-none text-white">
-                                            {filtered.length}
-                                        </Text>
+                                        <Text className="text-[40px] font-bold leading-none text-white">{filtered.length}</Text>
                                     </View>
                                     <View className="h-16 w-16 items-center justify-center rounded-full bg-white/20">
                                         <Ionicons name="time-outline" size={28} color="#fff" />
@@ -132,7 +151,7 @@ export default function NotificationsScreen() {
                 </LinearGradient>
             </View>
 
-            {/* Contenido: filtros + lista scrollable */}
+            {/* Contenido */}
             <View className="flex-1 pt-6">
                 <FlatList
                     data={filtered}
@@ -140,7 +159,7 @@ export default function NotificationsScreen() {
                     contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 120 }}
                     ListHeaderComponent={
                         <View className="w-full max-w-md self-center">
-                            {/* Filtros */}
+                            {/* Filtros simples (categoría sin efecto real por ahora) */}
                             <View className="mb-6">
                                 <Text className="mb-3 text-[18px] font-semibold text-gray-900">Categoría</Text>
                                 <ScrollView horizontal showsHorizontalScrollIndicator={false} className="pb-1">
@@ -149,13 +168,9 @@ export default function NotificationsScreen() {
                                             <Pressable
                                                 key={c}
                                                 onPress={() => setSelectedCategory(c)}
-                                                className={`rounded-full px-5 py-2 ${selectedCategory === c ? "bg-[#EA580C]" : "bg-gray-100"
-                                                    }`}
+                                                className={`rounded-full px-5 py-2 ${selectedCategory === c ? "bg-[#EA580C]" : "bg-gray-100"}`}
                                             >
-                                                <Text
-                                                    className={`text-sm font-medium ${selectedCategory === c ? "text-white" : "text-gray-800"
-                                                        }`}
-                                                >
+                                                <Text className={`text-sm font-medium ${selectedCategory === c ? "text-white" : "text-gray-800"}`}>
                                                     {c}
                                                 </Text>
                                             </Pressable>
@@ -172,13 +187,9 @@ export default function NotificationsScreen() {
                                             <Pressable
                                                 key={s}
                                                 onPress={() => setSelectedStatus(s)}
-                                                className={`rounded-full px-5 py-2 ${selectedStatus === s ? "bg-[#EA580C]" : "bg-gray-100"
-                                                    }`}
+                                                className={`rounded-full px-5 py-2 ${selectedStatus === s ? "bg-[#EA580C]" : "bg-gray-100"}`}
                                             >
-                                                <Text
-                                                    className={`text-sm font-medium ${selectedStatus === s ? "text-white" : "text-gray-800"
-                                                        }`}
-                                                >
+                                                <Text className={`text-sm font-medium ${selectedStatus === s ? "text-white" : "text-gray-800"}`}>
                                                     {s}
                                                 </Text>
                                             </Pressable>
@@ -187,15 +198,15 @@ export default function NotificationsScreen() {
                                 </ScrollView>
                             </View>
 
-                            {/* Separador "Hoy" */}
                             <Text className="mt-6 mb-4 text-2xl font-semibold text-gray-900">Hoy</Text>
 
-                            {/* Estados de carga/empty */}
                             {loading ? (
                                 <View className="mt-4 items-center">
                                     <ActivityIndicator />
                                     <Text className="mt-3 text-gray-600">Cargando…</Text>
                                 </View>
+                            ) : err ? (
+                                <Text className="text-gray-600">{err}</Text>
                             ) : filtered.length === 0 ? (
                                 <Text className="text-gray-600">No hay notificaciones que coincidan con tu filtro.</Text>
                             ) : null}
@@ -215,17 +226,18 @@ export default function NotificationsScreen() {
                             >
                                 <View className="mb-3 flex-row items-start justify-between">
                                     <View className="max-w-[80%]">
-                                        <Text className="mb-1 text-[17px] font-semibold text-gray-900">
-                                            {item.title}
-                                        </Text>
+                                        <Text className="mb-1 text-[17px] font-semibold text-gray-900">{item.title}</Text>
                                         <Text className="mb-3 text-[13px] text-gray-500">{item.restaurant}</Text>
-                                        {/* chip de estado (colores consistentes) */}
+
+                                        {/* chip de estado */}
                                         <View
                                             className={`self-start rounded-full px-4 py-1 ${item.status === "Listo"
                                                     ? "bg-green-100"
                                                     : item.status === "En preparación"
                                                         ? "bg-yellow-100"
-                                                        : "bg-gray-100"
+                                                        : item.status === "En espera"
+                                                            ? "bg-orange-100"
+                                                            : "bg-gray-100"
                                                 }`}
                                         >
                                             <Text
@@ -233,7 +245,9 @@ export default function NotificationsScreen() {
                                                         ? "text-green-700"
                                                         : item.status === "En preparación"
                                                             ? "text-yellow-700"
-                                                            : "text-gray-600"
+                                                            : item.status === "En espera"
+                                                                ? "text-orange-700"
+                                                                : "text-gray-600"
                                                     }`}
                                             >
                                                 {item.status}
@@ -272,69 +286,27 @@ export default function NotificationsScreen() {
                     )}
                 />
 
-                {/* Bottom Navigation (estático; puedes conectarlo a expo-router si quieres) */}
+                {/* Bottom Navigation (decorativo; conecta si quieres) */}
                 <View className="absolute bottom-0 left-0 right-0 border-t border-gray-200 bg-white">
                     <View className="flex-row items-center justify-around px-4 py-3">
-                        <Pressable
-                            onPress={() => setActiveTab("inicio")}
-                            className="items-center"
-                            accessibilityRole="button"
-                            accessibilityLabel="Inicio"
-                        >
-                            <Ionicons
-                                name="home-outline"
-                                size={24}
-                                color={activeTab === "inicio" ? "#111827" : "#9CA3AF"}
-                            />
-                            <Text className={`text-xs font-medium ${activeTab === "inicio" ? "text-gray-900" : "text-gray-400"}`}>
-                                Inicio
-                            </Text>
+                        <Pressable onPress={() => setActiveTab("inicio")} className="items-center">
+                            <Ionicons name="home-outline" size={24} color={activeTab === "inicio" ? "#111827" : "#9CA3AF"} />
+                            <Text className={`text-xs font-medium ${activeTab === "inicio" ? "text-gray-900" : "text-gray-400"}`}>Inicio</Text>
                         </Pressable>
 
-                        <Pressable
-                            onPress={() => setActiveTab("suscripciones")}
-                            className="items-center"
-                            accessibilityRole="button"
-                            accessibilityLabel="Suscripciones"
-                        >
-                            <Ionicons
-                                name="star-outline"
-                                size={24}
-                                color={activeTab === "suscripciones" ? "#111827" : "#9CA3AF"}
-                            />
-                            <Text className={`text-xs font-medium ${activeTab === "suscripciones" ? "text-gray-900" : "text-gray-400"}`}>
-                                Suscripciones
-                            </Text>
+                        <Pressable onPress={() => setActiveTab("suscripciones")} className="items-center">
+                            <Ionicons name="star-outline" size={24} color={activeTab === "suscripciones" ? "#111827" : "#9CA3AF"} />
+                            <Text className={`text-xs font-medium ${activeTab === "suscripciones" ? "text-gray-900" : "text-gray-400"}`}>Suscripciones</Text>
                         </Pressable>
 
-                        <Pressable
-                            onPress={() => setActiveTab("notificaciones")}
-                            className="items-center"
-                            accessibilityRole="button"
-                            accessibilityLabel="Notificaciones"
-                        >
-                            <Ionicons
-                                name="notifications-outline"
-                                size={24}
-                                color={activeTab === "notificaciones" ? "#EA580C" : "#9CA3AF"}
-                            />
+                        <Pressable onPress={() => setActiveTab("notificaciones")} className="items-center">
+                            <Ionicons name="notifications-outline" size={24} color={activeTab === "notificaciones" ? "#EA580C" : "#9CA3AF"} />
                             <Text className="text-xs font-medium text-[#EA580C]">Notificaciones</Text>
                         </Pressable>
 
-                        <Pressable
-                            onPress={() => setActiveTab("perfil")}
-                            className="items-center"
-                            accessibilityRole="button"
-                            accessibilityLabel="Perfil"
-                        >
-                            <Ionicons
-                                name="person-outline"
-                                size={24}
-                                color={activeTab === "perfil" ? "#111827" : "#9CA3AF"}
-                            />
-                            <Text className={`text-xs font-medium ${activeTab === "perfil" ? "text-gray-900" : "text-gray-400"}`}>
-                                Perfil
-                            </Text>
+                        <Pressable onPress={() => setActiveTab("perfil")} className="items-center">
+                            <Ionicons name="person-outline" size={24} color={activeTab === "perfil" ? "#111827" : "#9CA3AF"} />
+                            <Text className={`text-xs font-medium ${activeTab === "perfil" ? "text-gray-900" : "text-gray-400"}`}>Perfil</Text>
                         </Pressable>
                     </View>
                 </View>
